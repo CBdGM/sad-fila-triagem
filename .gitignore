@@ -221,3 +221,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Dados gerados pelo coletor localmente (o job grava no branch data)
+data/

@@ -36,7 +36,7 @@ A lista `/issues` traz `state_reason`, `labels`, `author_association`, `comments
 
 **Gravação atômica.** Lê `issues.jsonl` para um dicionário por número, aplica as mudanças, valida cada linha e grava num arquivo temporário que substitui o original (`os.replace`). Depois grava `state.json` do mesmo jeito. Se qualquer passo falhar, nada é substituído.
 
-**Resultado da execução.** O coletor devolve (e imprime em JSON com `--changes`) três listas de números: `new`, `edited` e `closed`. O passo do Jev usa `new + edited`; o de desfechos usa `closed`. Assim os outros passos não precisam comparar arquivos.
+**Resultado da execução.** O coletor devolve (e grava em JSON com `--changes ARQUIVO`, ou no stdout com `--changes` sozinho) três listas de números: `new`, `edited` e `closed`. O passo do Jev usa `new + edited`; o de desfechos usa `closed`. Assim os outros passos não precisam comparar arquivos.
 
 **Cliente HTTP próprio e pequeno, com `requests`.** Funções: sessão com token, `get` com tratamento de limite e repetição, e `paginate` seguindo `Link: rel="next"`. Limite primário: 403/429 com `X-RateLimit-Remaining: 0` → espera até `X-RateLimit-Reset`. Limite secundário: 403/429 com `Retry-After` → espera o indicado. 5xx e erros de rede: até 5 tentativas com espera exponencial. Alternativa descartada: PyGithub (dependência maior e menos controle sobre os limites).
 
@@ -59,9 +59,11 @@ Linha de comando:
 ```bash
 python -m collector --repo apache/airflow          # um repositório
 python -m collector                                # todos os habilitados em repos.yaml
-python -m collector --repo apache/airflow --changes   # imprime new/edited/closed em JSON
+python -m collector --repo apache/airflow --changes mudancas.json   # grava new/edited/closed em JSON
 python -m collector --data-dir /tmp/data --config repos.yaml
 ```
+
+**Andamento e uso da API.** O andamento sai no stderr a cada 10 páginas e no fim de cada etapa; o resumo de cada repositório mostra as requisições feitas e o limite restante informado pelo GitHub (`X-RateLimit-Remaining`).
 
 **Token.** `GITHUB_TOKEN` (o Actions fornece) ou, localmente, `gh auth token`, como na PoC. Sem token, o limite cai para 60 requisições por hora; o coletor avisa e segue.
 
