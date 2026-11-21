@@ -86,7 +86,11 @@ Para cada issue fechada, `outcomes.jsonl` MUST registrar o `state_reason`, as la
 - **THEN** o desfecho é `no_action` com motivo `duplicate`
 
 #### Scenario: Fechada por bot de inatividade
-- **WHEN** um bot de inatividade fecha a issue
+- **WHEN** uma conta listada em `stale_bots` fecha a issue
+- **THEN** o desfecho é `excluded` com `exclusion_reason` `stale_bot`
+
+#### Scenario: Fechada com label de inatividade
+- **WHEN** a issue fecha com uma label listada em `stale_labels` (ex.: `lifecycle/rotten`), mesmo que a conta que fechou também feche a pedido de humanos
 - **THEN** o desfecho é `excluded` com `exclusion_reason` `stale_bot`
 
 #### Scenario: Fechada como completed sem PR

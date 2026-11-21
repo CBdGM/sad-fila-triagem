@@ -43,6 +43,11 @@ Requisitos e decisões: `openspec/changes/definir-contratos-de-dados/` (depois d
 
 `is_defect`, `actionable` e `severity` entram no calibrador, mas não viram motivo.
 
+- **Inatividade:** uma issue conta como fechada por inatividade (`excluded`, `stale_bot`) se quem
+  fechou está em `stale_bots` ou se ela tinha uma label de `stale_labels` (ambos por repositório no
+  `repos.yaml`). As labels existem porque alguns bots fecham tanto por inatividade quanto a pedido de
+  humanos (ex.: `kubernetes-prow[bot]`).
+
 ## Convenções
 
 - Chaves em inglês `snake_case`; descrições dos campos em português dentro de cada schema.

@@ -13,11 +13,12 @@ repos:
       "pending-response": needs_info
       "kind:question": usage_question
     stale_bots: ["github-actions[bot]"]
+    stale_labels: [stale]
   - repo: microsoft/vscode
     closing_labels:
       "*duplicate": duplicate
       info-needed: needs_info
       "*question": usage_question
       "*out-of-scope": out_of_scope
-    stale_bots: ["vscodenpa"]
+    stale_bots: []
     enabled: false

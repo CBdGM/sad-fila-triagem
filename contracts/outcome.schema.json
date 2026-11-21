@@ -97,7 +97,7 @@
         "other",
         null
       ],
-      "description": "Por que ficou fora da conta, quando label é excluded: stale_bot (fechada por bot de inatividade) ou completed_without_pr (completed sem PR mesclado)."
+      "description": "Por que ficou fora da conta, quando label é excluded: stale_bot (fechada por conta de stale_bots ou com label de stale_labels do repos.yaml) ou completed_without_pr (completed sem PR mesclado)."
     },
     "rules_version": {
       "type": "string",
