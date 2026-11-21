@@ -77,6 +77,22 @@ ação" usada no portão da Fase 0 (≥ 15%). As regras de `gab-1` são as da pr
 Para mudar as regras (ex.: contar bot + label de motivo como "sem ação"), crie uma versão nova em
 `outcomes/rules.py`; cada desfecho guarda a versão usada.
 
+### Resultado da Fase 0 (21/11/2026, últimos 6 meses, `gab-1`)
+
+| Repositório | % sem ação | Papel |
+|---|---|---|
+| microsoft/vscode | 68,4% | principal |
+| microsoft/TypeScript | 48,0% | principal |
+| godotengine/godot | 38,7% | principal |
+| grafana/grafana | 13,7% | secundário |
+| apache/airflow | 12,7% | secundário |
+| kubernetes/kubernetes | 10,1% | secundário |
+| elastic/elasticsearch | 9,5% | secundário |
+
+O portão (≥ 2 repositórios com ≥ 15%) passou. A avaliação usa os principais; os secundários seguem
+na coleta. `golang/go` ficou de fora porque corrige por commit do Gerrit, não por PR, e o `gab-1` só
+reconhece "com ação" por PR mesclado.
+
 ## Como trabalhamos (OpenSpec)
 
 Cada mudança grande começa como um change do OpenSpec, revisado pelo time antes do código:

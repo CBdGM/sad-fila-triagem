@@ -1,5 +1,9 @@
 # Repositórios observados pelo job (contrato: contracts/repos.schema.json).
-# Candidatos da Fase 0 segundo a proposta SAD v3; a Fase 0 decide quais ficam.
+# Fase 0 (21/11/2026, 6 meses, gab-1), portão de ≥ 15% sem ação:
+#   principais (passaram):  microsoft/vscode 68,4% · microsoft/TypeScript 48,0% · godotengine/godot 38,7%
+#   secundários (abaixo):   grafana/grafana 13,7% · apache/airflow 12,7% · kubernetes/kubernetes 10,1% · elastic/elasticsearch 9,5%
+#   golang/go ficou de fora: corrige por commit do Gerrit, não por PR, e o gab-1 não enxerga "com ação".
+# Os secundários continuam habilitados para coleta; a avaliação usa os principais.
 #
 # closing_labels: label que indica fechamento sem ação → motivo
 #   (duplicate, needs_info, usage_question, out_of_scope ou other).
@@ -76,3 +80,27 @@ repos:
     # por isso não entra em stale_bots: inatividade no Kubernetes se reconhece pela label.
     stale_bots: []
     stale_labels: [lifecycle/rotten]
+
+  - repo: microsoft/TypeScript
+    closing_labels:
+      Duplicate: duplicate
+      Needs More Info: needs_info
+      Question: usage_question
+      Out of Scope: out_of_scope
+      Working as Intended: other
+      Not a Defect: other
+      Design Limitation: other
+      By Design: other
+      Won't Fix: other
+      Declined: other
+      invalid: other
+      AI Spam: other
+    # typescript-automation fecha as que humanos já rotularam (Duplicate, Question…): não é bot de inatividade.
+    stale_bots: []
+
+  - repo: godotengine/godot
+    closing_labels:
+      spam: other
+    # Fechadas como not_planned levam "archived" (genérica, sem motivo); duplicatas vêm do state_reason.
+    # Amostra de 50 not_planned (21/11/2026): todas fechadas por humanos.
+    stale_bots: []
