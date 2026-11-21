@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "outcome.schema.json",
+  "title": "data/<repo>/outcomes.jsonl (uma linha)",
+  "description": "Como uma issue fechou: é o gabarito. Só acrescenta; se a issue reabrir e fechar de novo, entra outra linha e vale a mais recente. Idempotência: não gravar outra linha com o mesmo repo, number e closed_at. Escrito pela Integração (fatos do GitHub) com a classificação das regras do Back; lido pelo Back.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "repo",
+    "number",
+    "recorded_at",
+    "closed_at",
+    "state_reason",
+    "labels_at_close",
+    "closed_by",
+    "closed_by_bot",
+    "merged_pr",
+    "label",
+    "rules_version"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "repo": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+    },
+    "number": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "recorded_at": {
+      "$ref": "#/$defs/utc",
+      "description": "Quando o job gravou este desfecho."
+    },
+    "closed_at": {
+      "$ref": "#/$defs/utc"
+    },
+    "state_reason": {
+      "enum": [
+        "completed",
+        "not_planned",
+        "duplicate",
+        null
+      ]
+    },
+    "labels_at_close": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "closed_by": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Login de quem fechou; null se o GitHub não informar."
+    },
+    "closed_by_bot": {
+      "type": "boolean",
+      "description": "true se quem fechou é uma conta de bot."
+    },
+    "merged_pr": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1,
+      "description": "Número do PR mesclado do mesmo repositório ligado à issue; null se não houver."
+    },
+    "label": {
+      "enum": [
+        "no_action",
+        "action",
+        "excluded"
+      ],
+      "description": "Classificação do gabarito."
+    },
+    "reason": {
+      "enum": [
+        "duplicate",
+        "needs_info",
+        "usage_question",
+        "out_of_scope",
+        "other",
+        null
+      ],
+      "description": "Motivo quando label é no_action."
+    },
+    "exclusion_reason": {
+      "enum": [
+        "stale_bot",
+        "completed_without_pr",
+        "other",
+        null
+      ],
+      "description": "Por que ficou fora da conta, quando label é excluded: stale_bot (fechada por bot de inatividade) ou completed_without_pr (completed sem PR mesclado)."
+    },
+    "rules_version": {
+      "type": "string",
+      "description": "Versão das regras do gabarito usadas na classificação, ex.: gab-1."
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "label": {
+            "const": "no_action"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "reason"
+        ],
+        "properties": {
+          "reason": {
+            "not": {
+              "const": null
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "label": {
+            "const": "excluded"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "exclusion_reason"
+        ],
+        "properties": {
+          "exclusion_reason": {
+            "not": {
+              "const": null
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "utc": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$"
+    }
+  }
+}

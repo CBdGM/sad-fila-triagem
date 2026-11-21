@@ -1,0 +1,282 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "metrics.schema.json",
+  "title": "public/metrics.json",
+  "description": "Métricas correntes do sistema para a página de métricas. Sobrescrito a cada execução; calculado pelo Back e publicado pela Integração; lido pelo Front.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "evaluations"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "generated_at": {
+      "$ref": "#/$defs/utc"
+    },
+    "evaluations": {
+      "type": "array",
+      "description": "Uma entrada por avaliação (desenho de teste × repositório × modelo).",
+      "items": {
+        "$ref": "#/$defs/evaluation"
+      }
+    },
+    "robustness": {
+      "type": "array",
+      "description": "Experimento de robustez (Fase 5): issues reescritas por um LLM, mesmo conteúdo, mais elaboradas.",
+      "items": {
+        "type": "object",
+        "required": [
+          "repo",
+          "model",
+          "n",
+          "mean_shift",
+          "max_shift",
+          "band_changed"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "repo": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "n": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Issues reescritas."
+          },
+          "mean_shift": {
+            "type": "number",
+            "description": "Deslocamento médio de P(sem ação) (reescrita − original)."
+          },
+          "max_shift": {
+            "type": "number",
+            "minimum": 0,
+            "description": "Maior deslocamento absoluto."
+          },
+          "band_changed": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "description": "Fração das issues que mudaram de faixa."
+          },
+          "rewriter": {
+            "type": "string",
+            "description": "LLM usado para reescrever."
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "utc": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$"
+    },
+    "p": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "evaluation": {
+      "type": "object",
+      "required": [
+        "design",
+        "repo",
+        "model",
+        "n",
+        "auc",
+        "precision_no_action",
+        "recall_no_action",
+        "coverage",
+        "brier"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "design": {
+          "enum": [
+            "temporal",
+            "cross_repo",
+            "prospective"
+          ],
+          "description": "Desenho do teste."
+        },
+        "repo": {
+          "type": "string",
+          "description": "owner/nome, ou \"all\" para o conjunto todo."
+        },
+        "trained_on": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Repositórios usados para calibrar (cross_repo)."
+        },
+        "model": {
+          "type": "string",
+          "description": "Ex.: jev+cal-global-1, laya, tfidf, heuristic, llm-forte."
+        },
+        "n": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Issues no conjunto de teste."
+        },
+        "auc": {
+          "$ref": "#/$defs/p"
+        },
+        "precision_no_action": {
+          "$ref": "#/$defs/p"
+        },
+        "recall_no_action": {
+          "$ref": "#/$defs/p"
+        },
+        "coverage": {
+          "$ref": "#/$defs/p",
+          "description": "Fração decidida sem ir para human_review."
+        },
+        "brier": {
+          "$ref": "#/$defs/p"
+        },
+        "reliability": {
+          "type": "array",
+          "description": "Curva de confiabilidade: previsão média × fração real por faixa de probabilidade.",
+          "items": {
+            "type": "object",
+            "required": [
+              "bin_low",
+              "bin_high",
+              "mean_pred",
+              "frac_positive",
+              "n"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "bin_low": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "bin_high": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "mean_pred": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "frac_positive": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "n": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          }
+        },
+        "by_text_length": {
+          "type": "array",
+          "description": "Métricas por tamanho do texto (justiça com quem reporta).",
+          "items": {
+            "type": "object",
+            "required": [
+              "min_words",
+              "max_words",
+              "n",
+              "precision_no_action"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "min_words": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "max_words": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 0
+              },
+              "n": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "precision_no_action": {
+                "$ref": "#/$defs/p"
+              },
+              "recall_no_action": {
+                "$ref": "#/$defs/p"
+              }
+            }
+          }
+        },
+        "cost_usd_per_issue": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "latency_ms_p50": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0
+        },
+        "calibrator": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Versão do calibrador avaliado, quando o modelo usa um."
+        },
+        "target_precision": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1,
+          "description": "Precisão-alvo da faixa likely_no_action usada para escolher os cortes (proposta: 0,9)."
+        },
+        "cuts": {
+          "type": "object",
+          "description": "Cortes de P(sem ação) entre as faixas, escolhidos pelo limite inferior de confiança da precisão.",
+          "required": [
+            "attention_max",
+            "no_action_min"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "attention_max": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "Abaixo disso: attention."
+            },
+            "no_action_min": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1,
+              "description": "A partir disso: likely_no_action. Entre os dois: human_review."
+            }
+          }
+        }
+      }
+    }
+  }
+}

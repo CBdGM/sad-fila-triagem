@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-11-21T06:05:12Z",
+  "repos": [
+    {
+      "repo": "apache/airflow",
+      "last_success_at": "2026-11-21T06:05:10Z",
+      "model": "jev-1.14.0",
+      "calibrator": "cal-global-1",
+      "counts": {
+        "attention": 1,
+        "human_review": 1,
+        "likely_no_action": 2
+      }
+    }
+  ],
+  "items": [
+    {
+      "repo": "apache/airflow",
+      "number": 75102,
+      "url": "https://github.com/apache/airflow/issues/75102",
+      "title": "Scheduler crashes with KeyError when a Dag is deleted during parsing",
+      "labels": [
+        "kind:bug",
+        "area:scheduler"
+      ],
+      "created_at": "2026-11-18T14:02:11Z",
+      "updated_at": "2026-11-19T09:40:00Z",
+      "first_seen_at": "2026-11-19T06:01:12Z",
+      "band": "attention",
+      "p_no_action": 0.08,
+      "reason": null,
+      "severity": "high",
+      "contributions": [
+        {
+          "question": "is_defect",
+          "weight": -1.4
+        },
+        {
+          "question": "enough_info",
+          "weight": -0.9
+        },
+        {
+          "question": "actionable",
+          "weight": -0.7
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "other",
+          "text": "Defeito descrito com traceback e passos para reproduzir."
+        }
+      ]
+    },
+    {
+      "repo": "apache/airflow",
+      "number": 75121,
+      "url": "https://github.com/apache/airflow/issues/75121",
+      "title": "Support custom timezones in the calendar view",
+      "labels": [
+        "kind:feature"
+      ],
+      "created_at": "2026-11-20T10:00:00Z",
+      "updated_at": "2026-11-20T10:00:00Z",
+      "first_seen_at": "2026-11-21T06:02:00Z",
+      "band": "human_review",
+      "p_no_action": 0.47,
+      "reason": null,
+      "severity": "low",
+      "evidence": []
+    },
+    {
+      "repo": "apache/airflow",
+      "number": 75110,
+      "url": "https://github.com/apache/airflow/issues/75110",
+      "title": "How do I pass variables to a TaskFlow task?",
+      "labels": [
+        "needs-triage"
+      ],
+      "created_at": "2026-11-19T20:15:43Z",
+      "updated_at": "2026-11-19T20:15:43Z",
+      "first_seen_at": "2026-11-20T06:01:40Z",
+      "band": "likely_no_action",
+      "p_no_action": 0.91,
+      "reason": "usage_question",
+      "severity": "low",
+      "contributions": [
+        {
+          "question": "usage_question",
+          "weight": 2.1
+        },
+        {
+          "question": "is_defect",
+          "weight": 0.8
+        }
+      ],
+      "evidence": [
+        {
+          "kind": "usage_question",
+          "text": "O autor pergunta como usar um recurso; não descreve defeito."
+        }
+      ]
+    },
+    {
+      "repo": "apache/airflow",
+      "number": 75130,
+      "url": "https://github.com/apache/airflow/issues/75130",
+      "title": "Webserver shows 500 when clearing a task",
+      "labels": [
+        "kind:bug"
+      ],
+      "created_at": "2026-11-20T18:30:00Z",
+      "updated_at": "2026-11-20T18:30:00Z",
+      "first_seen_at": "2026-11-21T06:02:30Z",
+      "band": "likely_no_action",
+      "p_no_action": 0.86,
+      "reason": "duplicate",
+      "severity": "medium",
+      "evidence": [
+        {
+          "kind": "duplicate",
+          "text": "Parece repetir a #74712 (mesmo erro ao limpar task).",
+          "number": 74712,
+          "url": "https://github.com/apache/airflow/issues/74712"
+        }
+      ]
+    }
+  ]
+}

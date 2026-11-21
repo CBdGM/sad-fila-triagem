@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-11-21T06:05:12Z",
+  "evaluations": [
+    {
+      "design": "temporal",
+      "repo": "apache/airflow",
+      "model": "jev+cal-global-1",
+      "n": 412,
+      "auc": 0.84,
+      "precision_no_action": 0.9,
+      "recall_no_action": 0.41,
+      "coverage": 0.63,
+      "brier": 0.14,
+      "reliability": [
+        {
+          "bin_low": 0.0,
+          "bin_high": 0.2,
+          "mean_pred": 0.09,
+          "frac_positive": 0.07,
+          "n": 180
+        },
+        {
+          "bin_low": 0.2,
+          "bin_high": 0.5,
+          "mean_pred": 0.33,
+          "frac_positive": 0.36,
+          "n": 121
+        },
+        {
+          "bin_low": 0.5,
+          "bin_high": 0.8,
+          "mean_pred": 0.64,
+          "frac_positive": 0.6,
+          "n": 66
+        },
+        {
+          "bin_low": 0.8,
+          "bin_high": 1.0,
+          "mean_pred": 0.88,
+          "frac_positive": 0.9,
+          "n": 45
+        }
+      ],
+      "by_text_length": [
+        {
+          "min_words": 0,
+          "max_words": 50,
+          "n": 97,
+          "precision_no_action": 0.82,
+          "recall_no_action": 0.52
+        },
+        {
+          "min_words": 51,
+          "max_words": null,
+          "n": 315,
+          "precision_no_action": 0.93,
+          "recall_no_action": 0.37
+        }
+      ],
+      "cost_usd_per_issue": 0.0005,
+      "latency_ms_p50": 230,
+      "calibrator": "cal-global-1",
+      "target_precision": 0.9,
+      "cuts": {
+        "attention_max": 0.3,
+        "no_action_min": 0.78
+      }
+    },
+    {
+      "design": "temporal",
+      "repo": "apache/airflow",
+      "model": "heuristic",
+      "n": 412,
+      "auc": 0.66,
+      "precision_no_action": 0.71,
+      "recall_no_action": 0.2,
+      "coverage": 0.38,
+      "brier": 0.21,
+      "cost_usd_per_issue": 0,
+      "latency_ms_p50": 1
+    }
+  ],
+  "robustness": [
+    {
+      "repo": "apache/airflow",
+      "model": "jev+cal-global-1",
+      "n": 50,
+      "mean_shift": -0.06,
+      "max_shift": 0.31,
+      "band_changed": 0.14,
+      "rewriter": "llm-forte"
+    }
+  ]
+}
