@@ -1,0 +1,78 @@
+# Repositórios observados pelo job (contrato: contracts/repos.schema.json).
+# Candidatos da Fase 0 segundo a proposta SAD v3; a Fase 0 decide quais ficam.
+#
+# closing_labels: label que indica fechamento sem ação → motivo
+#   (duplicate, needs_info, usage_question, out_of_scope ou other).
+#   Nomes conferidos na API do GitHub em 21/11/2026; a Fase 0 confere o uso real de cada um.
+# stale_bots: contas que fecham issues só por inatividade.
+# stale_labels: labels que marcam fechamento por inatividade (servem quando o bot também fecha a pedido de humanos).
+# Ambos conferidos em issues fechadas com label de inatividade em 21/11/2026.
+
+schema_version: 1
+model: jev-1.14.0
+first_run:
+  open_max: 500
+  closed_months: 6
+
+repos:
+  - repo: apache/airflow
+    closing_labels:
+      duplicate: duplicate
+      pending-response: needs_info
+      invalid: other
+      "won't fix": other
+      spam: other
+      AI Spam: other
+    stale_bots: ["github-actions[bot]"]   # fecha as com label stale como not_planned
+    stale_labels: [stale]
+
+  - repo: microsoft/vscode
+    closing_labels:
+      "*duplicate": duplicate
+      duplicate: duplicate
+      "*question": usage_question
+      "*dev-question": usage_question
+      "*out-of-scope": out_of_scope
+      info-needed: needs_info
+      "~info-needed": needs_info
+      "~version-info-needed": needs_info
+      "*as-designed": other
+      wont-fix: other
+      invalid: other
+      spam: other
+      "~spam": other
+    # vs-code-engineering[bot] fecha duplicatas a pedido de humanos: não é bot de inatividade.
+    stale_bots: []
+
+  - repo: grafana/grafana
+    closing_labels:
+      type/duplicate: duplicate
+      bot/duplicate: duplicate
+      type/question: usage_question
+      bot/question: usage_question
+      needs more info: needs_info
+      bot/needs more info: needs_info
+      type/works-as-intended: other
+      wontfix: other
+      type/spam: other
+    stale_bots: ["github-actions[bot]"]   # fecha as com label stale como not_planned
+    stale_labels: [stale]
+
+  - repo: elastic/elasticsearch
+    closing_labels:
+      feedback_needed: needs_info
+      needs:reproduction: needs_info
+      "won't fix": other
+      ">non-issue": other
+    stale_bots: []
+
+  - repo: kubernetes/kubernetes
+    closing_labels:
+      triage/duplicate: duplicate
+      triage/needs-information: needs_info
+      kind/support: usage_question
+      triage/not-reproducible: other
+    # kubernetes-prow[bot] fecha tanto por inatividade (lifecycle/rotten) quanto a pedido de humanos (/close);
+    # por isso não entra em stale_bots: inatividade no Kubernetes se reconhece pela label.
+    stale_bots: []
+    stale_labels: [lifecycle/rotten]
