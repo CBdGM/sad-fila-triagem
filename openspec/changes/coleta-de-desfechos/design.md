@@ -65,3 +65,16 @@ python -m outcomes --max 200                # no máximo 200 desfechos por repos
 ## Open Questions
 
 - Tamanho do lote (50) pode subir se o custo continuar em 1 ponto; ajustar com os números dos outros repositórios.
+
+### Achados da amostra manual (21/11/2026) — candidatos a `gab-2`, ainda não implementados
+
+Amostra de 30 desfechos (10 por repositório principal: 4 sem ação, 4 com ação, 2 fora, semente 42):
+25 parecem certos, 3 errados, 2 duvidosos; os 12 "com ação" acertaram.
+
+- **Spam fechado como `completed`** (2 de 2 "fora" do VS Code eram lixo fechado pelo autor): caem em
+  `completed_without_pr`, mas deveriam ser sem ação. Efeito: a % sem ação sai menor que a real.
+- **Sem ação com PR mesclado ligado** (ex.: TypeScript #65048, fechada como não planejada em 30/10 e
+  corrigida por PR em 04/11): VS Code 189 de 7.129, TypeScript 16 de 225, Godot 20 de 609. Nem todo é erro
+  (às vezes o PR é só relacionado), mas são ambíguos. Proposta: `no_action` + `merged_pr` → `excluded`.
+- **Godot:** a label `archived` vai em toda não planejada, então o motivo `other` do Godot não informa nada.
+- **Go fora:** corrige por commit do Gerrit (`closer` é `Commit`), que o `gab-1` não reconhece como ação.
