@@ -80,6 +80,26 @@ def write_issues(path, issues):
     _atomic_write(path, "".join(line + "\n" for line in lines))
 
 
+def read_jsonl(path):
+    """Linhas de um JSONL como lista (arquivo ausente = vazio)."""
+    path = Path(path)
+    if not path.exists():
+        return []
+    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+
+
+def append_jsonl(path, rows, contract, label=lambda row: ""):
+    """Acrescenta linhas a um JSONL só de acréscimo: valida as novas e regrava de forma atômica,
+    mantendo as linhas antigas exatamente como estavam."""
+    for row in rows:
+        validate(contract, row, label(row))
+    path = Path(path)
+    old = path.read_text(encoding="utf-8") if path.exists() else ""
+    if old and not old.endswith("\n"):
+        old += "\n"
+    _atomic_write(path, old + "".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows))
+
+
 def write_state(path, state):
     validate("state", state, "state.json")
     _atomic_write(path, json.dumps(state, ensure_ascii=False, indent=2) + "\n")

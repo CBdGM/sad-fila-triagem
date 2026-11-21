@@ -16,6 +16,7 @@ A PoC que deu origem a este projeto está em
 ```
 repos.yaml      repositórios observados, labels de fechamento e bots de inatividade
 collector/      coletor incremental de issues (python -m collector)
+outcomes/       desfechos das issues fechadas, o gabarito (python -m outcomes)
 contracts/      formato de cada arquivo trocado entre as equipes (JSON Schema + exemplos)
 openspec/       requisitos e mudanças no formato do OpenSpec
   specs/        o sistema como está (fonte da verdade)
@@ -23,7 +24,7 @@ openspec/       requisitos e mudanças no formato do OpenSpec
 tests/          testes (sem rede)
 ```
 
-Ainda por vir, conforme as fases: job (`.github/workflows/`), desfechos, calibrador e avaliação,
+Ainda por vir, conforme as fases: job (`.github/workflows/`), calibrador e avaliação,
 site da fila, e o branch `data` com o histórico.
 
 ## Coletor
@@ -49,6 +50,32 @@ quantas requisições foram feitas e quantas restam no limite da hora. `--change
 em JSON o que mudou (`new`, `edited`, `closed`), usado pelos próximos passos do job; `--changes` sem
 arquivo imprime no stdout. Token: `GITHUB_TOKEN` (num `.env` ou no ambiente) ou o do `gh auth login`; sem token, o limite
 do GitHub cai para 60 requisições por hora. Os dados locais ficam em `data/`, ignorada pelo git.
+
+## Desfechos (gabarito)
+
+Para cada issue fechada em `issues.jsonl` que ainda não tem desfecho, busca no GitHub (GraphQL, 50
+issues por consulta) quem fechou, se foi bot e o PR mesclado ligado, classifica pelas regras do
+gabarito (`outcomes/rules.py`, versão `gab-1`) e acrescenta a linha em
+`data/<owner__nome>/outcomes.jsonl`. Grava a cada lote; rodar de novo não repete nada.
+
+```bash
+.venv/bin/python -m outcomes --repo apache/airflow   # um repositório (rode o coletor antes)
+.venv/bin/python -m outcomes                         # todos os habilitados
+.venv/bin/python -m outcomes --max 200               # no máximo 200 desfechos por repositório
+```
+
+O resumo final mostra quantas issues são sem ação, com ação e fora da conta, e a porcentagem "sem
+ação" usada no portão da Fase 0 (≥ 15%). As regras de `gab-1` são as da proposta:
+
+| Ordem | Regra | Classe |
+|---|---|---|
+| 1 | Quem fechou está em `stale_bots`, ou a issue tem label de `stale_labels` | `excluded` (`stale_bot`) |
+| 2 | `state_reason` `not_planned` ou `duplicate`, ou label de `closing_labels` | `no_action` (motivo da label) |
+| 3 | Fechada com PR mesclado ligado | `action` |
+| 4 | Fechada como `completed` sem PR | `excluded` (`completed_without_pr`) |
+
+Para mudar as regras (ex.: contar bot + label de motivo como "sem ação"), crie uma versão nova em
+`outcomes/rules.py`; cada desfecho guarda a versão usada.
 
 ## Como trabalhamos (OpenSpec)
 
