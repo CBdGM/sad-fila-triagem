@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "repo": "elastic/elasticsearch",
-  "cursor_since": "2026-11-24T15:53:03Z",
-  "last_success_at": "2026-11-24T15:53:04Z",
+  "cursor_since": "2026-11-24T15:53:56Z",
+  "last_success_at": "2026-11-24T15:53:57Z",
   "versions": {
     "model": "jev-1.14.0",
     "questions": "q1",
