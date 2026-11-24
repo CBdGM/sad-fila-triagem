@@ -102,20 +102,15 @@ jobs:
           echo "corrupted=$([ $code -eq 2 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
           exit $code
 
-  # Publica a fila no GitHub Pages a partir do branch data já atualizado. Não publica se a auditoria
-  # achou erro, ou se queue.json/metrics.json não passarem no contrato: o site anterior fica.
-  publicar:
+  # Monta a fila e envia como artefato do Pages. Não roda se a auditoria achou erro; se
+  # queue.json/metrics.json não passarem no contrato, falha aqui e nada é publicado.
+  montar:
     needs: [diario, auditar]
     if: ${{ !cancelled() && needs.auditar.outputs.corrupted == 'false' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
       contents: read
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v7
       - name: Branch data
@@ -134,5 +129,19 @@ jobs:
       - uses: actions/upload-pages-artifact@v5
         with:
           path: public
+
+  # Deploy num job separado do upload: no mesmo job, o deploy às vezes não enxerga o artefato
+  # recém-enviado (actions/deploy-pages#451). Se falhar, "Re-run failed jobs" refaz só o deploy.
+  publicar:
+    needs: montar
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
       - id: deploy
         uses: actions/deploy-pages@v5
