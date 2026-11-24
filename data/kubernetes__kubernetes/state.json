@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "repo": "kubernetes/kubernetes",
-  "cursor_since": "2026-11-24T15:31:58Z",
-  "last_success_at": "2026-11-24T15:32:03Z",
+  "cursor_since": "2026-11-24T15:45:46Z",
+  "last_success_at": "2026-11-24T15:45:46Z",
   "versions": {
     "model": "jev-1.14.0",
     "questions": "q1",
