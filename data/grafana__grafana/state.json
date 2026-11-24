@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "repo": "grafana/grafana",
-  "cursor_since": "2026-11-24T15:53:55Z",
-  "last_success_at": "2026-11-24T15:53:56Z",
+  "cursor_since": "2026-11-24T17:05:24Z",
+  "last_success_at": "2026-11-24T17:05:25Z",
   "versions": {
     "model": "jev-1.14.0",
     "questions": "q1",
