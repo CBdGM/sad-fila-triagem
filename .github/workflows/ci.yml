@@ -25,3 +25,10 @@ jobs:
       - name: Testes
         run: |
           if [ -d tests ]; then python -m pytest -q; else echo "sem testes neste branch"; fi
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: OpenSpec (changes e specs bem formados)
+        env:
+          DO_NOT_TRACK: "1"   # desliga a telemetria do CLI
+        run: npx -y @fission-ai/openspec@2.1.1 validate --all --strict
