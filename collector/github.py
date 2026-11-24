@@ -85,10 +85,37 @@ def _wait_seconds(r, now):
 
 def get(s, url, params=None, *, sleep=time.sleep, clock=time.time):
     """GET com espera nos limites do GitHub e repetição em erro temporário."""
+    return _send(s, "get", url, sleep=sleep, clock=clock, params=params)
+
+
+def graphql(s, query, variables=None, *, sleep=time.sleep, clock=time.time):
+    """Consulta GraphQL. Devolve `data`; itens não encontrados (NOT_FOUND) vêm como nulos.
+
+    Qualquer outro erro na resposta vira GitHubError, com as mensagens do GitHub (sem o token).
+    """
+    url = f"{API}/graphql"
+    for _ in range(MAX_RETRIES):
+        body = _send(s, "post", url, sleep=sleep, clock=clock,
+                     json={"query": query, "variables": variables or {}}).json()
+        errors = body.get("errors") or []
+        if any(e.get("type") == "RATE_LIMITED" for e in errors):  # limite do GraphQL vem com 200
+            print("Limite do GraphQL atingido; esperando 60s.", file=sys.stderr)
+            sleep(60)
+            continue
+        fatal = [e for e in errors if e.get("type") != "NOT_FOUND"]
+        if fatal or body.get("data") is None:
+            msgs = "; ".join(e.get("message", "?") for e in (fatal or errors))[:500]
+            raise GitHubError(f"consulta GraphQL falhou: {msgs or 'resposta sem dados'}")
+        return body["data"]
+    raise GitHubError(f"limite do GraphQL não liberou após {MAX_RETRIES} tentativas")
+
+
+def _send(s, method, url, *, sleep, clock, **kwargs):
+    """Requisição com espera nos limites do GitHub e repetição em erro temporário."""
     path = url.replace(API, "")
     for attempt in range(MAX_RETRIES):
         try:
-            r = s.get(url, params=params, timeout=30)
+            r = getattr(s, method)(url, timeout=30, **kwargs)
         except requests.RequestException as e:
             if attempt == MAX_RETRIES - 1:
                 raise GitHubError(f"erro de rede em {path}: {type(e).__name__}") from None
