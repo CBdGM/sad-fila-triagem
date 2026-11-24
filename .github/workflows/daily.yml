@@ -68,3 +68,38 @@ jobs:
           fi
           git commit -q -m "Job diário $(date -u +%Y-%m-%dT%H:%MZ)"
           git push -q origin data
+
+  # Publica a fila no GitHub Pages a partir do branch data já atualizado. Se queue.json ou
+  # metrics.json não passarem no contrato, o comando falha, nada é publicado e o site anterior fica.
+  publicar:
+    needs: diario
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Branch data
+        uses: actions/checkout@v4
+        with:
+          ref: data
+          path: dados
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - run: pip install -r requirements.txt
+      - name: Montar queue.json e metrics.json
+        run: python -m publisher --data-dir dados/data --out public
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+      - id: deploy
+        uses: actions/deploy-pages@v4

@@ -18,6 +18,7 @@ repos.yaml      repositórios observados, labels de fechamento e bots de inativi
 collector/      coletor incremental de issues (python -m collector)
 outcomes/       desfechos das issues fechadas, o gabarito (python -m outcomes)
 evaluator/      chamada A do Jev sobre as issues (python -m evaluator)
+publisher/      monta queue.json e metrics.json para o site (python -m publisher)
 contracts/      formato de cada arquivo trocado entre as equipes (JSON Schema + exemplos)
 openspec/       requisitos e mudanças no formato do OpenSpec
   specs/        o sistema como está (fonte da verdade)
@@ -25,7 +26,7 @@ openspec/       requisitos e mudanças no formato do OpenSpec
 tests/          testes (sem rede)
 ```
 
-Ainda por vir, conforme as fases: calibrador e avaliação, fila (`queue.json`) e site.
+Ainda por vir, conforme as fases: calibrador e avaliação, e o site da fila.
 
 ## Coletor
 
@@ -129,6 +130,23 @@ O resumo mostra quantas previsões foram feitas, os tokens gastos e quantas falt
 
 O histórico fica no branch [`data`](../../tree/data). Para usar localmente:
 `git worktree add ../sad-fila-data data` e `--data-dir ../sad-fila-data/data` nos comandos.
+
+## Fila publicada (Pages)
+
+Depois de atualizar o branch `data`, o job diário monta e publica no GitHub Pages:
+
+- https://cbdgm.github.io/sad-fila-triagem/queue.json — a fila (`contracts/queue.schema.json`)
+- https://cbdgm.github.io/sad-fila-triagem/metrics.json — as métricas (`contracts/metrics.schema.json`)
+
+Enquanto não há calibrador, entram as issues abertas que já têm previsão do Jev, todas na faixa
+`human_review`, ordenadas por severidade e depois pela data de criação (`p_no_action`, `reason` e
+`calibrator` ficam nulos; `metrics.json` sai com `evaluations` vazio). Os dois arquivos são validados
+antes de gravar; se algum falhar, nada é publicado e o site anterior continua.
+
+```bash
+git worktree add ../sad-fila-data data                               # uma vez
+.venv/bin/python -m publisher --data-dir ../sad-fila-data/data --out public
+```
 
 ## Como trabalhamos (OpenSpec)
 
