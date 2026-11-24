@@ -47,3 +47,14 @@ def test_le_os_exemplos_dos_contratos():
 
 def test_repo_dir():
     assert store.repo_dir("data", "apache/airflow").as_posix() == "data/apache__airflow"
+
+
+def test_jsonl_com_separador_unicode_dentro_do_texto(tmp_path):
+    # U+2028, U+0085 e \x0c ficam crus no json.dumps(ensure_ascii=False); não podem quebrar a linha
+    rows = [{"n": 1, "texto": "a b\u0085c\x0cd"}, {"n": 2, "texto": "ok"}]
+    path = tmp_path / "x.jsonl"
+    path.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows), encoding="utf-8")
+    assert store.read_jsonl(path) == rows
+    issues = tmp_path / "issues.jsonl"
+    issues.write_text(json.dumps({"number": 7, "title": "x y"}, ensure_ascii=False) + "\n", encoding="utf-8")
+    assert store.read_issues(issues)[7]["title"] == "x y"

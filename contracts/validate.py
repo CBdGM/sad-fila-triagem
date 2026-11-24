@@ -31,7 +31,7 @@ def load_records(path: Path):
     """(rótulo, objeto) para cada registro do arquivo."""
     text = path.read_text(encoding="utf-8")
     if path.suffix == ".jsonl":
-        for i, line in enumerate(text.splitlines(), 1):
+        for i, line in enumerate(text.split("\n"), 1):
             if line.strip():
                 yield f"{path}:{i}", json.loads(line)
     elif path.suffix in (".yaml", ".yml"):

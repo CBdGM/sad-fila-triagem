@@ -44,7 +44,7 @@ def read_issues(path):
     if not path.exists():
         return {}
     out = {}
-    for line in path.read_text(encoding="utf-8").splitlines():
+    for line in _lines(path):
         if line.strip():
             rec = json.loads(line)
             out[rec["number"]] = rec
@@ -85,7 +85,13 @@ def read_jsonl(path):
     path = Path(path)
     if not path.exists():
         return []
-    return [json.loads(line) for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
+    return [json.loads(line) for line in _lines(path) if line.strip()]
+
+
+def _lines(path):
+    """Linhas de um JSONL separadas só por "\n". Não usar splitlines(): ele também quebra em U+2028,
+    U+0085 e outros separadores Unicode, que o json.dumps(ensure_ascii=False) deixa dentro das strings."""
+    return path.read_text(encoding="utf-8").split("\n")
 
 
 def append_jsonl(path, rows, contract, label=lambda row: ""):
