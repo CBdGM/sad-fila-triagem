@@ -19,6 +19,7 @@ collector/      coletor incremental de issues (python -m collector)
 outcomes/       desfechos das issues fechadas, o gabarito (python -m outcomes)
 evaluator/      chamada A do Jev sobre as issues (python -m evaluator)
 publisher/      monta queue.json e metrics.json para o site (python -m publisher)
+audit/          auditoria diária do branch data (python -m audit)
 contracts/      formato de cada arquivo trocado entre as equipes (JSON Schema + exemplos)
 openspec/       requisitos e mudanças no formato do OpenSpec
   specs/        o sistema como está (fonte da verdade)
@@ -146,6 +147,23 @@ antes de gravar; se algum falhar, nada é publicado e o site anterior continua.
 ```bash
 git worktree add ../sad-fila-data data                               # uma vez
 .venv/bin/python -m publisher --data-dir ../sad-fila-data/data --out public
+```
+
+## Auditoria diária
+
+Entre a atualização do branch `data` e a publicação, o job roda `python -m audit`, que confere os
+dados sem chamar nenhuma API:
+
+- **Erros** (dado corrompido): linha fora do contrato, desfecho ou previsão repetidos, mais de um
+  `first_seen` por issue, previsão de issue desconhecida. **Impedem a publicação**: o site fica com a fila anterior.
+- **Atenções** (dado parado ou crescendo): última coleta há mais de 36 h, fechada sem desfecho,
+  aberta há mais de 4 dias sem previsão do Jev, dados acima de 150 MB. A fila é publicada mesmo assim.
+
+Qualquer achado deixa o job vermelho, e o GitHub avisa por e-mail. Saída: 0 sem achados, 1 só
+atenções, 2 com erro. Os limites mudam por opção (`python -m audit -h`).
+
+```bash
+.venv/bin/python -m audit --data-dir ../sad-fila-data/data
 ```
 
 ## Como trabalhamos (OpenSpec)
