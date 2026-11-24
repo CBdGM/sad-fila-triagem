@@ -28,13 +28,13 @@ jobs:
       TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}
       DATA_DIR: dados/data
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Branch data
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: data
           path: dados
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
           cache: pip
@@ -84,13 +84,13 @@ jobs:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Branch data
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: data
           path: dados
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
           cache: pip
@@ -98,8 +98,8 @@ jobs:
       - run: pip install -r requirements.txt
       - name: Montar queue.json e metrics.json
         run: python -m publisher --data-dir dados/data --out public
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: public
       - id: deploy
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
