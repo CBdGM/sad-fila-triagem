@@ -1,0 +1,265 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "prediction.schema.json",
+  "title": "data/<repo>/predictions.jsonl (uma linha)",
+  "description": "Uma avaliação de uma issue pelo avaliador (Jev). Respostas brutas: a calibração não entra aqui, porque o calibrador é retreinado e este arquivo nunca é reescrito. Só acrescenta. Idempotência: não gravar outra linha com o mesmo repo, number, body_sha256 e versions. Escrito pela Integração; lido pelo Back.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "repo",
+    "number",
+    "predicted_at",
+    "mode",
+    "first_seen",
+    "body_sha256",
+    "versions",
+    "provenance",
+    "answers"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "repo": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+    },
+    "number": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "predicted_at": {
+      "$ref": "#/$defs/utc"
+    },
+    "mode": {
+      "enum": [
+        "backfill",
+        "daily"
+      ],
+      "description": "backfill: issue do histórico avaliada depois de fechada (texto pode ter sido editado; vale como limitação registrada). daily: avaliada pelo job diário enquanto aberta. Só first_seen + daily entra no teste prospectivo."
+    },
+    "first_seen": {
+      "type": "boolean",
+      "description": "true só na primeira previsão desta issue; a primeira previsão fica congelada e é a que conta na avaliação."
+    },
+    "body_sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "Hash do texto avaliado (o mesmo de issues.jsonl naquele momento)."
+    },
+    "versions": {
+      "type": "object",
+      "required": [
+        "model",
+        "questions",
+        "cleaning"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "model": {
+          "type": "string",
+          "pattern": "^(jev|laya)-\\d+\\.\\d+\\.\\d+$",
+          "description": "Versão explícita do avaliador (nunca jev-latest). Jev, ex.: jev-1.14.0; Laya como alternativa local, ex.: laya-0.4.12."
+        },
+        "questions": {
+          "type": "string"
+        },
+        "cleaning": {
+          "type": "string"
+        },
+        "embeddings": {
+          "type": "string",
+          "description": "Modelo de embeddings usado nas candidatas a duplicata (quando houver chamada C)."
+        },
+        "scope_card_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "Hash do cartão de escopo usado na chamada B (quando houver)."
+        }
+      }
+    },
+    "provenance": {
+      "type": "object",
+      "description": "O que o servidor do Jev devolveu, por chamada.",
+      "required": [
+        "calls"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "calls": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "call",
+              "served_by",
+              "request_id",
+              "latency_ms",
+              "tokens"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "call": {
+                "enum": [
+                  "A",
+                  "B",
+                  "C"
+                ],
+                "description": "A: texto da issue; B: cartão de escopo + issue; C: issue + candidata a duplicata."
+              },
+              "served_by": {
+                "type": "string",
+                "description": "Versão que de fato respondeu, ex.: jev-1.14.0."
+              },
+              "request_id": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Id da requisição devolvido pelo Jev; null na Laya (local)."
+              },
+              "latency_ms": {
+                "type": "number",
+                "minimum": 0
+              },
+              "tokens": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 0,
+                "description": "Tokens da chamada (custo); null se o avaliador não informar."
+              },
+              "candidate": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Na chamada C: número da issue candidata a duplicata."
+              }
+            },
+            "if": {
+              "properties": {
+                "call": {
+                  "const": "C"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "candidate"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "answers": {
+      "type": "object",
+      "description": "Probabilidades devolvidas pelo Jev, uma chave por pergunta.",
+      "required": [
+        "is_defect",
+        "actionable",
+        "enough_info",
+        "usage_question",
+        "severity"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "is_defect": {
+          "$ref": "#/$defs/p",
+          "description": "A: descreve um defeito?"
+        },
+        "actionable": {
+          "$ref": "#/$defs/p",
+          "description": "A: dá para um mantenedor agir com o que está escrito?"
+        },
+        "enough_info": {
+          "$ref": "#/$defs/p",
+          "description": "A: há informação suficiente para reproduzir?"
+        },
+        "usage_question": {
+          "$ref": "#/$defs/p",
+          "description": "A: o autor está perguntando como usar o software?"
+        },
+        "severity": {
+          "type": "object",
+          "description": "A: severidade em 4 níveis. probs na ordem [low, medium, high, critical].",
+          "required": [
+            "probs",
+            "level"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "probs": {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/p"
+              },
+              "minItems": 4,
+              "maxItems": 4
+            },
+            "level": {
+              "enum": [
+                "low",
+                "medium",
+                "high",
+                "critical"
+              ],
+              "description": "Nível mais provável."
+            }
+          }
+        },
+        "in_scope": {
+          "$ref": "#/$defs/p",
+          "description": "B (Fase 4): o pedido está dentro do escopo descrito?"
+        },
+        "duplicates": {
+          "type": "array",
+          "description": "C (Fase 4): até 3 candidatas a duplicata.",
+          "maxItems": 3,
+          "items": {
+            "type": "object",
+            "required": [
+              "number",
+              "similarity",
+              "p_same"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "number": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "similarity": {
+                "type": "number",
+                "minimum": -1,
+                "maximum": 1,
+                "description": "Similaridade dos embeddings."
+              },
+              "p_same": {
+                "$ref": "#/$defs/p",
+                "description": "As duas descrevem o mesmo problema ou pedido?"
+              }
+            }
+          }
+        }
+      }
+    },
+    "input_text": {
+      "type": "string",
+      "description": "Opcional, recomendado: título + corpo limpos enviados na chamada A. Permite reproduzir a previsão (audit.py) mesmo se a issue for editada depois."
+    }
+  },
+  "$defs": {
+    "utc": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$"
+    },
+    "p": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    }
+  }
+}

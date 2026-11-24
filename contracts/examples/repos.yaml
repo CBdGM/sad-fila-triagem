@@ -1,0 +1,24 @@
+# Exemplo de repos.yaml (o arquivo real fica na raiz do branch principal).
+# Labels e bots são ilustrativos: a Fase 0 confirma os nomes reais de cada repositório.
+schema_version: 1
+model: jev-1.14.0
+first_run:
+  open_max: 500
+  closed_months: 6
+repos:
+  - repo: apache/airflow
+    closing_labels:
+      duplicate: duplicate
+      invalid: other
+      "pending-response": needs_info
+      "kind:question": usage_question
+    stale_bots: ["github-actions[bot]"]
+    stale_labels: [stale]
+  - repo: microsoft/vscode
+    closing_labels:
+      "*duplicate": duplicate
+      info-needed: needs_info
+      "*question": usage_question
+      "*out-of-scope": out_of_scope
+    stale_bots: []
+    enabled: false

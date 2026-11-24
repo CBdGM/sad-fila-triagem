@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "repos.schema.json",
+  "title": "repos.yaml",
+  "description": "Configuração manual (branch principal): repositórios observados, versão fixa do Jev, tetos da primeira execução e mapa de labels de fechamento. Escrito à mão; lido pela Integração e pelo Back.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "model",
+    "first_run",
+    "repos"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "model": {
+      "type": "string",
+      "pattern": "^(jev|laya)-\\d+\\.\\d+\\.\\d+$",
+      "description": "Versão explícita do avaliador (nunca jev-latest). Jev, ex.: jev-1.14.0; Laya como alternativa local, ex.: laya-0.4.12."
+    },
+    "first_run": {
+      "type": "object",
+      "description": "Tetos da primeira execução (cursor vazio).",
+      "required": [
+        "open_max",
+        "closed_months"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "open_max": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Máximo de issues abertas mais recentes."
+        },
+        "closed_months": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Meses de issues fechadas para calibração."
+        }
+      }
+    },
+    "repos": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "repo",
+          "closing_labels"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "repo": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$",
+            "description": "owner/nome, com o nome atual (repositórios renomeados quebram a busca)."
+          },
+          "enabled": {
+            "type": "boolean",
+            "default": true,
+            "description": "false para parar de observar sem apagar o histórico."
+          },
+          "closing_labels": {
+            "type": "object",
+            "description": "Label do repositório que indica fechamento sem ação → motivo. Ex.: {\"invalid\": \"other\", \"needs-info\": \"needs_info\"}.",
+            "minProperties": 1,
+            "additionalProperties": {
+              "enum": [
+                "duplicate",
+                "needs_info",
+                "usage_question",
+                "out_of_scope",
+                "other"
+              ]
+            }
+          },
+          "stale_bots": {
+            "type": "array",
+            "description": "Logins das contas que fecham issues só por inatividade neste repositório. Não listar bots que também fecham a pedido de humanos (ex.: kubernetes-prow[bot], que executa /close).",
+            "items": {
+              "type": "string"
+            }
+          },
+          "stale_labels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Labels que indicam fechamento por inatividade (ex.: stale, lifecycle/rotten). Uma issue fechada com uma delas conta como fechada por inatividade, mesmo que a conta que fechou também feche a pedido de humanos."
+          },
+          "scope_card": {
+            "type": "string",
+            "description": "Caminho do cartão de escopo (Fase 4), ex.: data/apache__airflow/scope.md."
+          }
+        }
+      }
+    }
+  }
+}
