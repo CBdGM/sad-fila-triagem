@@ -128,3 +128,19 @@ def test_backfill_grava_modo(tmp_path):
     folder = write(tmp_path, records, [outcome(1, "no_action", C)])
     run(tmp_path, GitHubSession(texts_of(records)), JevSession(), mode="backfill")
     assert preds(folder)[0]["mode"] == "backfill"
+
+
+def test_input_text_gravado_sem_credencial_e_jev_recebe_o_original(tmp_path):
+    token = "ghp_" + "a1B2" * 9
+    folder = write(tmp_path, [rec(1, body=f"use {token} aqui")])
+    sent = []
+
+    def ask(s, m, t):
+        sent.append(t)
+        return jev.ask(s, m, t, base="https://x")
+
+    res = evaluate_repo(GitHubSession({1: ("Issue 1", f"use {token} aqui")}), JevSession(), "o/r", MODEL,
+                        tmp_path, mode="daily", now=NOW, ask=ask)
+    stored = preds(folder)[0]["input_text"]
+    assert token in sent[0] and token not in stored and "[REDACTED]" in stored
+    assert res["redacted"] == [1]

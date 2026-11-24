@@ -106,6 +106,8 @@ reproduzir?, é pergunta de uso? e a severidade em 4 níveis.
 - Mais recentes primeiro. Não repete issue já avaliada com o mesmo texto e as mesmas versões; a primeira
   previsão de cada issue fica marcada com `first_seen`. Grava a cada issue, então uma falha não perde o que já custou tokens.
 - A versão do Jev é o `model` de `repos.yaml` (nunca `jev-latest`). Precisa de `TYPESAFE_API_KEY` no `.env`.
+- Credenciais coladas no texto da issue (tokens do GitHub, Azure DevOps, AWS etc.) viram `[REDACTED]` no
+  `input_text` gravado (`evaluator/redact.py`); o Jev recebe o texto original.
 
 ```bash
 .venv/bin/python -m evaluator --mode backfill --repo microsoft/TypeScript --max 20   # comece pequeno

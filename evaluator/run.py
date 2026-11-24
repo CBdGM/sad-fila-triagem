@@ -5,6 +5,7 @@ from collector import store
 from collector.collect import body_hash, utc
 
 from . import fetch, jev
+from .redact import redact
 from .clean import CLEANING_VERSION, clean_issue
 from .questions import QUESTIONS_VERSION
 
@@ -58,13 +59,13 @@ def build_row(repo, issue, text, answers, prov, mode, first_seen, v, predicted_a
         "versions": v,
         "provenance": {"calls": [prov]},
         "answers": answers,
-        "input_text": text,
+        "input_text": redact(text)[0],  # o Jev recebeu `text`; o gravado vai sem credenciais
     }
 
 
 def evaluate_repo(gh, js, repo, model, data_dir, *, mode, max_items=None, batch_size=BATCH_SIZE,
                   now=None, emit=None, ask=jev.ask, **kw):
-    """Avalia as issues pendentes. Devolve {"added", "tokens", "skipped", "edited", "other_model", "pending_left"}.
+    """Avalia as issues pendentes. Devolve {"added", "tokens", "skipped", "edited", "redacted", "other_model", "pending_left"}.
 
     Cada previsão é gravada logo depois da chamada; uma falha no meio mantém as anteriores.
     """
@@ -84,7 +85,8 @@ def evaluate_repo(gh, js, repo, model, data_dir, *, mode, max_items=None, batch_
         todo = todo[:max_items]
 
     seen = {p["number"] for p in predictions}
-    res = {"added": 0, "tokens": 0, "skipped": [], "edited": [], "other_model": set(), "pending_left": left_after}
+    res = {"added": 0, "tokens": 0, "skipped": [], "edited": [], "redacted": [], "other_model": set(),
+           "pending_left": left_after}
     for start in range(0, len(todo), batch_size):
         chunk = todo[start:start + batch_size]
         texts = fetch.fetch_texts(gh, repo, [i["number"] for i in chunk], **kw)
@@ -98,6 +100,8 @@ def evaluate_repo(gh, js, repo, model, data_dir, *, mode, max_items=None, batch_
                 continue
             text = clean_issue({"title": t.get("title") or "", "body": t.get("body") or ""})[:MAX_STATE_CHARS]
             answers, prov = ask(js, model, text)
+            if redact(text)[1]:
+                res["redacted"].append(issue["number"])
             row = build_row(repo, issue, text, answers, prov, mode, issue["number"] not in seen, v,
                             utc(now or datetime.now(timezone.utc)))
             store.append_jsonl(preds_path, [row], "prediction", label=lambda r: f"previsão #{r['number']}")

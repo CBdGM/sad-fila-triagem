@@ -68,6 +68,8 @@ def _report(repo, res):
         lines.append(f"  editadas depois da coleta (rode o coletor antes): {res['edited'][:10]}")
     if res["skipped"]:
         lines.append(f"  puladas (apagadas ou transferidas): {res['skipped'][:10]}")
+    if res.get("redacted"):
+        lines.append(f"  credenciais trocadas por [REDACTED] no input_text de: {res['redacted'][:10]}")
     if res["other_model"]:
         lines.append(f"  AVISO: o servidor respondeu com {res['other_model']}, diferente do model de repos.yaml")
     return "\n".join(lines)
