@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "state.schema.json",
+  "title": "data/<repo>/state.json",
+  "description": "Estado do job por repositório: cursor da coleta incremental e versões em uso. Sobrescrito a cada execução bem-sucedida pela Integração.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "repo",
+    "cursor_since",
+    "last_success_at",
+    "versions"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "repo": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"
+    },
+    "cursor_since": {
+      "description": "Valor do parâmetro since da próxima coleta: a data da última execução bem-sucedida (usar o início dela, para não perder issues atualizadas durante a execução). Só avança quando a execução termina bem. null = primeira execução.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/utc"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "last_success_at": {
+      "description": "Fim da última execução bem-sucedida. null antes da primeira.",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/utc"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "versions": {
+      "$ref": "#/$defs/versions"
+    }
+  },
+  "$defs": {
+    "utc": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?Z$"
+    },
+    "versions": {
+      "type": "object",
+      "required": [
+        "model",
+        "questions",
+        "cleaning"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "model": {
+          "type": "string",
+          "pattern": "^(jev|laya)-\\d+\\.\\d+\\.\\d+$",
+          "description": "Versão explícita do avaliador (nunca jev-latest). Jev, ex.: jev-1.14.0; Laya como alternativa local, ex.: laya-0.4.12."
+        },
+        "questions": {
+          "type": "string",
+          "description": "Versão do conjunto de perguntas ao Jev, ex.: q1."
+        },
+        "cleaning": {
+          "type": "string",
+          "description": "Versão da limpeza do texto, ex.: clean-1."
+        },
+        "calibrator": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Versão do calibrador em uso; null antes da Fase 1."
+        },
+        "embeddings": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Modelo de embeddings da busca de duplicatas (Fase 4); null antes."
+        }
+      }
+    }
+  }
+}
