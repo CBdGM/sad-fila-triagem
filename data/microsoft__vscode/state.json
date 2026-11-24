@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "repo": "microsoft/vscode",
-  "cursor_since": "2026-11-24T15:45:39Z",
-  "last_success_at": "2026-11-24T15:45:42Z",
+  "cursor_since": "2026-11-24T15:48:00Z",
+  "last_success_at": "2026-11-24T15:48:02Z",
   "versions": {
     "model": "jev-1.14.0",
     "questions": "q1",
