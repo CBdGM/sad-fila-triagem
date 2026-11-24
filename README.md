@@ -14,14 +14,41 @@ A PoC que deu origem a este projeto está em
 ## Estrutura
 
 ```
+repos.yaml      repositórios observados, labels de fechamento e bots de inatividade
+collector/      coletor incremental de issues (python -m collector)
 contracts/      formato de cada arquivo trocado entre as equipes (JSON Schema + exemplos)
 openspec/       requisitos e mudanças no formato do OpenSpec
   specs/        o sistema como está (fonte da verdade)
   changes/      mudanças em andamento, uma pasta por mudança
+tests/          testes (sem rede)
 ```
 
-Ainda por vir, conforme as fases: coletor e job (`.github/workflows/`), calibrador e avaliação,
+Ainda por vir, conforme as fases: job (`.github/workflows/`), desfechos, calibrador e avaliação,
 site da fila, e o branch `data` com o histórico.
+
+## Coletor
+
+Baixa as issues dos repositórios habilitados em `repos.yaml` e grava, por repositório,
+`data/<owner__nome>/issues.jsonl` (uma linha por issue) e `data/<owner__nome>/state.json` (cursor).
+
+- **Primeira execução** (sem `state.json`): as `first_run.open_max` abertas mais recentes e as
+  fechadas dos últimos `first_run.closed_months` meses.
+- **Seguintes:** só as issues atualizadas desde o cursor (novas, editadas e fechadas).
+- Pull requests ficam de fora. Os arquivos são validados pelos contratos antes de gravar, e o
+  cursor só avança se tudo der certo; rodar de novo não duplica nada.
+
+```bash
+python3 -m venv .venv && .venv/bin/pip install -r requirements-dev.txt
+.venv/bin/python -m collector --repo apache/airflow             # um repositório
+.venv/bin/python -m collector                                   # todos os habilitados
+.venv/bin/python -m pytest -q                                   # testes
+```
+
+Durante a coleta, o andamento aparece a cada 10 páginas e no fim de cada etapa; o resumo final mostra
+quantas requisições foram feitas e quantas restam no limite da hora. `--changes mudancas.json` grava
+em JSON o que mudou (`new`, `edited`, `closed`), usado pelos próximos passos do job; `--changes` sem
+arquivo imprime no stdout. Token: `GITHUB_TOKEN` (num `.env` ou no ambiente) ou o do `gh auth login`; sem token, o limite
+do GitHub cai para 60 requisições por hora. Os dados locais ficam em `data/`, ignorada pelo git.
 
 ## Como trabalhamos (OpenSpec)
 
