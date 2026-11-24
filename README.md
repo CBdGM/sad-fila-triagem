@@ -17,6 +17,7 @@ A PoC que deu origem a este projeto está em
 repos.yaml      repositórios observados, labels de fechamento e bots de inatividade
 collector/      coletor incremental de issues (python -m collector)
 outcomes/       desfechos das issues fechadas, o gabarito (python -m outcomes)
+evaluator/      chamada A do Jev sobre as issues (python -m evaluator)
 contracts/      formato de cada arquivo trocado entre as equipes (JSON Schema + exemplos)
 openspec/       requisitos e mudanças no formato do OpenSpec
   specs/        o sistema como está (fonte da verdade)
@@ -24,7 +25,7 @@ openspec/       requisitos e mudanças no formato do OpenSpec
 tests/          testes (sem rede)
 ```
 
-Ainda por vir, conforme as fases: job (`.github/workflows/`), calibrador e avaliação,
+Ainda por vir, conforme as fases: job diário, calibrador e avaliação,
 site da fila, e o branch `data` com o histórico.
 
 ## Coletor
@@ -92,6 +93,27 @@ Para mudar as regras (ex.: contar bot + label de motivo como "sem ação"), crie
 O portão (≥ 2 repositórios com ≥ 15%) passou. A avaliação usa os principais; os secundários seguem
 na coleta. `golang/go` ficou de fora porque corrige por commit do Gerrit, não por PR, e o `gab-1` só
 reconhece "com ação" por PR mesclado.
+
+## Avaliador (Jev)
+
+Faz a chamada A do Jev (proposta SAD v3) e acrescenta as respostas em `data/<owner__nome>/predictions.jsonl`.
+Para cada issue, busca título e corpo no GitHub, confere que o hash bate com `issues.jsonl`, limpa o
+texto (`evaluator/clean.py`, a camada 1 do `clean.py` da PoC, versão `clean-1`) e pergunta, numa única
+chamada (`evaluator/questions.py`, versão `q1`): é defeito?, dá para agir?, há informação para
+reproduzir?, é pergunta de uso? e a severidade em 4 níveis.
+
+- `--mode backfill`: fechadas com desfecho `no_action` ou `action` (o treino do calibrador). Rode os desfechos antes.
+- `--mode daily`: abertas.
+- Mais recentes primeiro. Não repete issue já avaliada com o mesmo texto e as mesmas versões; a primeira
+  previsão de cada issue fica marcada com `first_seen`. Grava a cada issue, então uma falha não perde o que já custou tokens.
+- A versão do Jev é o `model` de `repos.yaml` (nunca `jev-latest`). Precisa de `TYPESAFE_API_KEY` no `.env`.
+
+```bash
+.venv/bin/python -m evaluator --mode backfill --repo microsoft/TypeScript --max 20   # comece pequeno
+.venv/bin/python -m evaluator --mode daily
+```
+
+O resumo mostra quantas previsões foram feitas, os tokens gastos e quantas faltam.
 
 ## Como trabalhamos (OpenSpec)
 
