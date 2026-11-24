@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "repo": "apache/airflow",
-  "cursor_since": "2026-11-24T17:05:19Z",
-  "last_success_at": "2026-11-24T17:05:20Z",
+  "cursor_since": "2026-11-24T17:12:54Z",
+  "last_success_at": "2026-11-24T17:12:55Z",
   "versions": {
     "model": "jev-1.14.0",
     "questions": "q1",

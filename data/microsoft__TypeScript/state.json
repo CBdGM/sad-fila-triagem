@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "repo": "microsoft/TypeScript",
-  "cursor_since": "2026-11-24T17:05:28Z",
-  "last_success_at": "2026-11-24T17:05:29Z",
+  "cursor_since": "2026-11-24T17:13:04Z",
+  "last_success_at": "2026-11-24T17:13:05Z",
   "versions": {
     "model": "jev-1.14.0",
     "questions": "q1",
