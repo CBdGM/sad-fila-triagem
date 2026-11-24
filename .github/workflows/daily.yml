@@ -69,11 +69,44 @@ jobs:
           git commit -q -m "Job diário $(date -u +%Y-%m-%dT%H:%MZ)"
           git push -q origin data
 
-  # Publica a fila no GitHub Pages a partir do branch data já atualizado. Se queue.json ou
-  # metrics.json não passarem no contrato, o comando falha, nada é publicado e o site anterior fica.
-  publicar:
+  # Confere o branch data já commitado (sem chamar API). Qualquer achado deixa o job vermelho, e o
+  # GitHub avisa por e-mail; só erro (dado corrompido) impede a publicação. Ver `python -m audit -h`.
+  auditar:
     needs: diario
     if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    outputs:
+      corrupted: ${{ steps.audit.outputs.corrupted }}
+    steps:
+      - uses: actions/checkout@v7
+      - name: Branch data
+        uses: actions/checkout@v7
+        with:
+          ref: data
+          path: dados
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: requirements*.txt
+      - run: pip install -r requirements.txt
+      - name: Auditoria
+        id: audit
+        run: |
+          set +e
+          python -m audit --data-dir dados/data
+          code=$?
+          echo "corrupted=$([ $code -eq 2 ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          exit $code
+
+  # Publica a fila no GitHub Pages a partir do branch data já atualizado. Não publica se a auditoria
+  # achou erro, ou se queue.json/metrics.json não passarem no contrato: o site anterior fica.
+  publicar:
+    needs: [diario, auditar]
+    if: ${{ !cancelled() && needs.auditar.outputs.corrupted == 'false' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
