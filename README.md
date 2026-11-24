@@ -25,8 +25,7 @@ openspec/       requisitos e mudanças no formato do OpenSpec
 tests/          testes (sem rede)
 ```
 
-Ainda por vir, conforme as fases: job diário, calibrador e avaliação,
-site da fila, e o branch `data` com o histórico.
+Ainda por vir, conforme as fases: calibrador e avaliação, fila (`queue.json`) e site.
 
 ## Coletor
 
@@ -114,6 +113,20 @@ reproduzir?, é pergunta de uso? e a severidade em 4 níveis.
 ```
 
 O resumo mostra quantas previsões foram feitas, os tokens gastos e quantas faltam.
+
+## Job diário
+
+`.github/workflows/daily.yml` roda todo dia às 06:00 (Brasília) e também à mão (aba Actions → "Job diário" →
+"Run workflow"). Ele faz checkout do branch `data`, roda coletor → desfechos → Jev nas abertas
+(`--mode daily`, no máximo 200 por repositório) e commita o que mudou em `data/` nesse branch.
+
+- Idempotente: rodar de novo ou pular um dia não duplica nada; se nada mudou, não há commit.
+- Se um passo falha, o que os anteriores concluíram é commitado e o job fica marcado como falho.
+- O Jev precisa do secret `TYPESAFE_API_KEY` (`gh secret set TYPESAFE_API_KEY`); sem ele, o passo é pulado com aviso.
+- O agendamento do Actions pode atrasar ou pular, e é desligado após 60 dias sem atividade no repositório.
+
+O histórico fica no branch [`data`](../../tree/data). Para usar localmente:
+`git worktree add ../sad-fila-data data` e `--data-dir ../sad-fila-data/data` nos comandos.
 
 ## Como trabalhamos (OpenSpec)
 
