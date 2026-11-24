@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "repo": "elastic/elasticsearch",
+  "cursor_since": "2026-11-24T15:31:46Z",
+  "last_success_at": "2026-11-24T15:31:58Z",
+  "versions": {
+    "model": "jev-1.14.0",
+    "questions": "q1",
+    "cleaning": "clean-1",
+    "calibrator": null,
+    "embeddings": null
+  }
+}
