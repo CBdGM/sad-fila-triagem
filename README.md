@@ -20,6 +20,8 @@ outcomes/       desfechos das issues fechadas, o gabarito (python -m outcomes)
 evaluator/      chamada A do Jev sobre as issues (python -m evaluator)
 publisher/      monta queue.json e metrics.json para o site (python -m publisher)
 audit/          auditoria diária do branch data (python -m audit)
+baselines/      baselines da Fase 1: heurística e TF-IDF contra o Jev (python -m baselines)
+docs/resultados/ relatórios gerados (baselines)
 contracts/      formato de cada arquivo trocado entre as equipes (JSON Schema + exemplos)
 openspec/       requisitos e mudanças no formato do OpenSpec
   specs/        o sistema como está (fonte da verdade)
@@ -165,6 +167,21 @@ atenções, 2 com erro. Os limites mudam por opção (`python -m audit -h`).
 ```bash
 .venv/bin/python -m audit --data-dir ../sad-fila-data/data
 ```
+
+## Baselines da Fase 1
+
+`python -m baselines` compara, no mesmo gabarito e com o mesmo texto que o Jev recebeu, uma heurística
+(regras fixas e com pesos aprendidos), TF-IDF + regressão logística e o sinal do Jev (bruto e com
+regressão logística sobre as 5 respostas). Corte temporal por repositório (70% mais antigas para
+treino), AUC com intervalo de 95%, precisão média, Brier e precisão/recall/cobertura no corte de
+precisão ≥ 90% escolhido no treino. Também mede só issues de autores de fora da equipe.
+
+```bash
+.venv/bin/pip install -r requirements-dev.txt          # inclui scikit-learn
+.venv/bin/python -m baselines --data-dir ../sad-fila-data/data --out docs/resultados
+```
+
+Resultados em [`docs/resultados/`](docs/resultados/) (Markdown e JSON no formato do `metrics.schema.json`).
 
 ## Como trabalhamos (OpenSpec)
 
