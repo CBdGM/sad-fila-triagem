@@ -144,3 +144,8 @@ def test_input_text_gravado_sem_credencial_e_jev_recebe_o_original(tmp_path):
     stored = preds(folder)[0]["input_text"]
     assert token in sent[0] and token not in stored and "[REDACTED]" in stored
     assert res["redacted"] == [1]
+
+
+def test_daily_ignora_issue_que_saiu_do_repositorio():
+    issues = {1: rec(1), 2: {**rec(2), "gone_at": "2026-11-22T00:00:00Z"}}
+    assert [i["number"] for i in select(issues, [], "daily")] == [1]

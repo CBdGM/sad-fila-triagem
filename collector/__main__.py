@@ -56,7 +56,8 @@ def main(argv=None, *, make_session=github.session):
             print(f"{repo}: FALHOU, nada gravado. {e}", file=sys.stderr)
             continue
         result[repo] = ch.as_dict()
-        print(f"{repo}: {len(ch.new)} novas, {len(ch.edited)} editadas, {len(ch.closed)} fechadas"
+        gone = f", {len(ch.gone)} saíram do repositório {ch.gone[:5]}" if ch.gone else ""
+        print(f"{repo}: {len(ch.new)} novas, {len(ch.edited)} editadas, {len(ch.closed)} fechadas{gone}"
               f" ({_usage_text(github.usage(s), before)})", file=sys.stderr)
 
     if args.changes == "-":

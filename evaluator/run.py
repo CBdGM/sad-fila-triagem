@@ -2,7 +2,7 @@
 from datetime import datetime, timezone
 
 from collector import store
-from collector.collect import body_hash, utc
+from collector.collect import is_open, body_hash, utc
 
 from . import fetch, jev
 from .redact import redact
@@ -29,7 +29,7 @@ def select(issues, outcomes, mode):
     daily: abertas.
     """
     if mode == "daily":
-        chosen = [i for i in issues.values() if i["state"] == "open"]
+        chosen = [i for i in issues.values() if is_open(i)]
     elif mode == "backfill":
         latest = {}
         for o in outcomes:  # outcomes.jsonl só acrescenta: a última linha da issue é a mais recente

@@ -1,6 +1,7 @@
 """Coleta de um repositório: primeira execução com tetos ou incremental pelo cursor."""
 import calendar
 import hashlib
+import sys
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
@@ -16,9 +17,11 @@ class Changes:
     new: list = field(default_factory=list)      # vistas pela primeira vez
     edited: list = field(default_factory=list)   # título ou corpo mudou
     closed: list = field(default_factory=list)   # fecharam (ou já vieram fechadas na primeira vez)
+    gone: list = field(default_factory=list)     # saíram do repositório (transferidas, apagadas)
 
     def as_dict(self):
-        return {"new": sorted(self.new), "edited": sorted(self.edited), "closed": sorted(self.closed)}
+        return {"new": sorted(self.new), "edited": sorted(self.edited), "closed": sorted(self.closed),
+                "gone": sorted(self.gone)}
 
 
 def utc(dt):
@@ -40,6 +43,29 @@ def body_hash(title, body):
 
 def is_pr(item):
     return "pull_request" in item
+
+
+def is_open(issue):
+    """Aberta e ainda no repositório (sem gone_at)."""
+    return issue["state"] == "open" and not issue.get("gone_at")
+
+
+GONE_BATCH = 100
+
+
+def find_gone(s, repo, numbers, **kw):
+    """Números que o GitHub informa como inexistentes no repositório (NOT_FOUND no GraphQL)."""
+    owner, name = repo.split("/")
+    gone = []
+    numbers = sorted(numbers)
+    for start in range(0, len(numbers), GONE_BATCH):
+        chunk = numbers[start:start + GONE_BATCH]
+        aliases = " ".join(f"i{n}: issue(number: {int(n)}) {{ number }}" for n in chunk)
+        query = "query($owner: String!, $name: String!) { repository(owner: $owner, name: $name) { %s } }" % aliases
+        data = github.graphql(s, query, {"owner": owner, "name": name}, **kw)
+        node = data.get("repository") or {}
+        gone += [n for n in chunk if node.get(f"i{n}") is None]
+    return gone
 
 
 def to_record(repo, item, first_seen_at):
@@ -161,6 +187,18 @@ def collect_repo(s, repo, cfg, data_dir, *, now=None, done_at=None, progress=Non
                                          or old.get("closed_at") != rec["closed_at"]):
             changes.closed.append(number)
         issues[number] = rec
+
+    # Issues transferidas, apagadas ou convertidas em discussão não aparecem no "since": confere as
+    # abertas e marca as que sumiram. Falha aqui só avisa; a conferência é refeita na próxima coleta.
+    try:
+        gone = find_gone(s, repo, [n for n, i in issues.items() if is_open(i)], **kw)
+    except github.GitHubError as e:
+        print(f"AVISO {repo}: conferência de issues sumidas falhou ({e}); fica para a próxima coleta",
+              file=sys.stderr)
+        gone = []
+    for n in gone:
+        issues[n] = {**issues[n], "gone_at": seen_at}
+    changes.gone = gone
 
     store.write_issues(issues_path, issues)
     versions = {**DEFAULT_VERSIONS, **((state or {}).get("versions") or {}), "model": cfg["model"]}

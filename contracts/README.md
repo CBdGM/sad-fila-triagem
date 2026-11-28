@@ -30,6 +30,8 @@ Requisitos e decisões: `openspec/changes/definir-contratos-de-dados/` (depois d
 - **Primeira previsão congelada:** `first_seen: true` marca a primeira previsão de cada issue. `mode`
   diz se ela veio do histórico (`backfill`) ou do job diário (`daily`); só `daily` entra no teste
   prospectivo.
+- **Issue que saiu do repositório:** uma issue transferida, apagada ou convertida em discussão não some de
+  `issues.jsonl`; ganha `gone_at` e deixa de contar como aberta (fila, Jev diário, auditoria).
 - **Respostas brutas:** a calibração não fica em `predictions.jsonl`; P(sem ação), motivo e faixa
   saem no `queue.json`, com a versão do calibrador.
 - **Motivo da fila:** a pergunta ligada a um motivo que mais pesou no calibrador:

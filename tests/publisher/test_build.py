@@ -72,3 +72,9 @@ def test_cli_resumo(tmp_path, capsys):
     code = main(["--config", str(cfg), "--data-dir", str(data), "--out", str(tmp_path / "public")])
     err = capsys.readouterr().err
     assert code == 0 and "o/r: 1 na fila (1 abertas ainda sem previsão do Jev)" in err
+
+
+def test_issue_que_saiu_do_repositorio_nao_entra_na_fila():
+    gone = {**rec(1), "gone_at": "2026-11-23T00:00:00Z"}
+    items, missing = build_items("o/r", issues_of(gone, rec(2)), [pred(1), pred(2)])
+    assert [i["number"] for i in items] == [2] and missing == 0

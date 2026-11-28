@@ -1,5 +1,6 @@
 """Sessão falsa do GitHub para testar o coletor sem rede."""
 import copy
+import re
 from urllib.parse import parse_qsl, urlencode, urlsplit
 
 import pytest
@@ -21,14 +22,24 @@ class FakeResponse:
 class FakeSession:
     """Responde a partir de uma função (url, params) -> FakeResponse e registra as chamadas."""
 
-    def __init__(self, handler):
+    def __init__(self, handler, gone=(), graphql_status=200):
         self.handler = handler
         self.calls = []
         self.headers = {}
+        self.gone, self.graphql_status, self.graphql_calls = set(gone), graphql_status, 0
 
     def get(self, url, params=None, timeout=None):
         self.calls.append((url, dict(params or {})))
         return self.handler(url, dict(params or {}))
+
+    def post(self, url, json=None, timeout=None):
+        """Conferência de issues sumidas (GraphQL): as de `gone` voltam nulas, as outras existem."""
+        self.graphql_calls += 1
+        if self.graphql_status != 200:
+            return FakeResponse(self.graphql_status)
+        nums = [int(n) for n in re.findall(r"\bi(\d+):", json["query"])]
+        return FakeResponse(body={"data": {"repository": {f"i{n}": (None if n in self.gone else {"number": n})
+                                                          for n in nums}}})
 
 
 def issue(number, *, state="open", title=None, body="corpo", created="2026-11-01T10:00:00Z",
