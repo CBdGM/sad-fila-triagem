@@ -121,3 +121,11 @@ Cada item da faixa `likely_no_action` MUST ter um motivo principal (`duplicate`,
 #### Scenario: Agendamento pulado
 - **WHEN** o GitHub pula a execução de um dia
 - **THEN** o front-end mostra a data da última execução bem-sucedida
+
+### Requirement: Marca de issue que saiu do repositório
+
+O contrato de issue SHALL aceitar o campo opcional `gone_at` (data UTC) para issues que saíram do repositório. Consumidores SHALL tratar uma issue com `gone_at` como fora das abertas.
+
+#### Scenario: Issue marcada
+- **WHEN** uma linha de `issues.jsonl` tem `gone_at`
+- **THEN** ela passa no `issue.schema.json`

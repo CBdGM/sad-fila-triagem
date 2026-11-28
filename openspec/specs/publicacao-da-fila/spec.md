@@ -53,3 +53,11 @@ O job diário SHALL publicar `public/` (`queue.json`, `metrics.json` e `index.ht
 #### Scenario: Execução do job
 - **WHEN** o job diário termina a atualização dos dados
 - **THEN** `https://cbdgm.github.io/sad-fila-triagem/queue.json` passa a servir a fila nova
+
+### Requirement: Issue que saiu do repositório não conta como aberta (publicacao-da-fila)
+
+Uma issue com `gone_at` SHALL ser tratada como fora das abertas.
+
+#### Scenario: Issue transferida
+- **WHEN** uma issue aberta tem `gone_at`
+- **THEN** ela é ignorada como aberta neste passo
