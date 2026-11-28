@@ -77,3 +77,11 @@ Antes de gravar a previsão, o passo SHALL trocar no `input_text` os trechos com
 #### Scenario: Issue sem credencial
 - **WHEN** o texto não contém nenhum padrão de credencial
 - **THEN** o `input_text` gravado é idêntico ao texto enviado ao Jev
+
+### Requirement: Issue que saiu do repositório não conta como aberta (perguntas-ao-jev)
+
+Uma issue com `gone_at` SHALL ser tratada como fora das abertas.
+
+#### Scenario: Issue transferida
+- **WHEN** uma issue aberta tem `gone_at`
+- **THEN** ela é ignorada como aberta neste passo
