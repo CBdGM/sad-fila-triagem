@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from collector import store
+from collector.collect import is_open
 
 ERRO, ATENCAO = "erro", "atenção"
 CONTRACTS = {"issues.jsonl": "issue", "outcomes.jsonl": "outcome", "predictions.jsonl": "prediction"}
@@ -72,7 +73,7 @@ def freshness_warnings(issues, outcomes, predictions, state, now, *, max_hours, 
     predicted = {p["number"] for p in predictions}
     cutoff = now - timedelta(days=max_days)
     stale = [i["number"] for i in issues.values()
-             if i["state"] == "open" and i["number"] not in predicted and parse_utc(i["first_seen_at"]) < cutoff]
+             if is_open(i) and i["number"] not in predicted and parse_utc(i["first_seen_at"]) < cutoff]
     if stale:
         out.append(f"{len(stale)} aberta(s) vista(s) há mais de {max_days} dias sem previsão do Jev (ex.: {sorted(stale)[:5]})")
     return out

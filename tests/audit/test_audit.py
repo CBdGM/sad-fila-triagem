@@ -111,3 +111,9 @@ def test_cli_codigos_de_saida(tmp_path, capsys):
         f.write(line)
     assert main(["--config", str(cfg), "--data-dir", str(data)], now=NOW) == 2
     assert "auditoria: 2 erro(s)" in capsys.readouterr().err
+
+
+def test_aberta_que_saiu_do_repositorio_nao_gera_atencao(tmp_path):
+    old = {**rec(1), "gone_at": "2026-11-22T00:00:00Z"}
+    setup(tmp_path, [old])
+    assert audit(CFG, tmp_path, NOW) == []

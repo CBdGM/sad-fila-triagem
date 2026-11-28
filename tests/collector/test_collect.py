@@ -62,7 +62,7 @@ def test_primeira_execucao_respeita_tetos_e_descarta_prs(tmp_path, cfg):
     ch = run(tmp_path, repo, cfg)
     data = issues_file(tmp_path)
     assert sorted(data) == [5, 7, 9]           # 2 abertas (teto), 1 fechada na janela, sem PRs
-    assert ch.as_dict() == {"new": [5, 7, 9], "edited": [], "closed": [5]}
+    assert ch.as_dict() == {"new": [5, 7, 9], "edited": [], "closed": [5], "gone": []}
     assert data[9]["first_seen_at"] == "2026-11-21T06:00:00Z"
     state = store.read_state(tmp_path / "o__r" / "state.json")
     assert state["cursor_since"] == "2026-11-21T06:00:00Z"
@@ -78,7 +78,7 @@ def test_incremental_nova_editada_comentada_e_fechada(tmp_path, cfg):
         issue(4, pr=True),
     ])
     ch = run(tmp_path, later, cfg, now=LATER)
-    assert ch.as_dict() == {"new": [3], "edited": [1], "closed": []}
+    assert ch.as_dict() == {"new": [3], "edited": [1], "closed": [], "gone": []}
     data = issues_file(tmp_path)
     assert data[2]["labels"] == ["kind:bug"]
     assert data[2]["first_seen_at"] == "2026-11-21T06:00:00Z"   # preservado
@@ -118,7 +118,7 @@ def test_duas_execucoes_seguidas_nao_duplicam(tmp_path, cfg):
     snapshot = (tmp_path / "o__r" / "issues.jsonl").read_text()
     again = Repo(updated=[issue(2), issue(1)])  # since é inclusivo: as mesmas voltam
     ch = run(tmp_path, again, cfg, now=LATER)
-    assert ch.as_dict() == {"new": [], "edited": [], "closed": []}
+    assert ch.as_dict() == {"new": [], "edited": [], "closed": [], "gone": []}
     assert (tmp_path / "o__r" / "issues.jsonl").read_text() == snapshot
 
 
@@ -149,3 +149,36 @@ def test_progresso_mostra_andamento_e_fim(tmp_path, cfg):
     assert "abertas: 2/10 issues, 2 páginas" in msgs       # a cada 2 páginas
     assert "abertas: 10/10 issues, 5 páginas (fim)" in msgs
     assert any(m.startswith("fechadas desde 2026-10-21") and m.endswith("(fim)") for m in msgs)
+
+
+def test_issue_transferida_ganha_gone_at_e_volta_se_reaparecer(tmp_path, cfg, capsys):
+    run(tmp_path, Repo(open_items=[issue(1), issue(2)]), cfg)
+    s = FakeSession(Repo(), gone={2})
+    ch = collect_repo(s, "o/r", cfg, tmp_path, now=LATER, done_at=lambda: LATER)
+    issues = store.read_issues(tmp_path / "o__r" / "issues.jsonl")
+    assert ch.gone == [2] and issues[2]["gone_at"] == "2026-11-22T06:00:00Z" and "gone_at" not in issues[1]
+    for i in issues.values():
+        store.validate("issue", i)
+    # no dia seguinte não confere de novo a já marcada; se ela reaparecer, a marca some
+    s2 = FakeSession(Repo(updated=[issue(2, updated="2026-11-22T10:00:00Z")]))
+    collect_repo(s2, "o/r", cfg, tmp_path, now=datetime(2026, 11, 23, 6, tzinfo=timezone.utc),
+                 done_at=lambda: datetime(2026, 11, 23, 6, tzinfo=timezone.utc))
+    assert "gone_at" not in store.read_issues(tmp_path / "o__r" / "issues.jsonl")[2]
+
+
+def test_erro_na_conferencia_so_avisa(tmp_path, cfg, capsys):
+    run(tmp_path, Repo(open_items=[issue(1)]), cfg)
+    s = FakeSession(Repo(updated=[issue(3)]), graphql_status=400)
+    ch = collect_repo(s, "o/r", cfg, tmp_path, now=LATER, done_at=lambda: LATER, sleep=lambda x: None)
+    assert ch.new == [3] and ch.gone == []
+    assert store.read_state(tmp_path / "o__r" / "state.json")["cursor_since"] == "2026-11-22T06:00:00Z"
+    assert "conferência de issues sumidas falhou" in capsys.readouterr().err
+
+
+def test_conferencia_em_lotes(tmp_path, cfg, monkeypatch):
+    monkeypatch.setattr("collector.collect.GONE_BATCH", 2)
+    cfg["first_run"]["open_max"] = 10
+    run(tmp_path, Repo(open_items=[issue(n) for n in range(1, 6)]), cfg)
+    s = FakeSession(Repo(), gone={4})
+    ch = collect_repo(s, "o/r", cfg, tmp_path, now=LATER, done_at=lambda: LATER)
+    assert ch.gone == [4] and s.graphql_calls == 3

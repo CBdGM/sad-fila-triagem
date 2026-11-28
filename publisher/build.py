@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 
 from collector import store
+from collector.collect import is_open
 
 SEVERITY_ORDER = ["critical", "high", "medium", "low"]
 INDEX_HTML = """<!doctype html>
@@ -32,7 +33,7 @@ def build_items(repo, issues, predictions):
     latest = latest_predictions(predictions)
     items, missing = [], 0
     for i in issues.values():
-        if i["state"] != "open":
+        if not is_open(i):
             continue
         p = latest.get(i["number"])
         if p is None:

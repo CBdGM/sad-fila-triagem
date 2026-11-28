@@ -31,7 +31,7 @@ def test_coleta_so_os_habilitados_e_imprime_mudancas(tmp_path, capsys):
                 make_session=lambda: s)
     assert code == 0
     out = json.loads(capsys.readouterr().out)
-    assert out == {"o/a": {"new": [1], "edited": [], "closed": []}}
+    assert out == {"o/a": {"new": [1], "edited": [], "closed": [], "gone": []}}
     assert not any("/repos/o/b" in url for url, _ in s.calls)
     assert (tmp_path / "data" / "o__a" / "issues.jsonl").exists()
 
@@ -55,7 +55,7 @@ def test_changes_em_arquivo_e_resumo_com_uso_da_api(tmp_path, capsys):
     code = main(["--config", str(cfg), "--data-dir", str(tmp_path / "data"), "--changes", str(out_file)],
                 make_session=lambda: FakeSession(handler))
     assert code == 0
-    assert json.loads(out_file.read_text()) == {"o/a": {"new": [1], "edited": [], "closed": []}}
+    assert json.loads(out_file.read_text()) == {"o/a": {"new": [1], "edited": [], "closed": [], "gone": []}}
     captured = capsys.readouterr()
     assert captured.out == ""                      # nada despejado no terminal
     assert "requisições" in captured.err and "abertas" in captured.err
