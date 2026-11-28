@@ -134,6 +134,9 @@ jobs:
   # recém-enviado (actions/deploy-pages#451). Se falhar, "Re-run failed jobs" refaz só o deploy.
   publicar:
     needs: montar
+    # Sem este if, o GitHub pula o job quando qualquer job anterior da cadeia falhou (inclusive o
+    # auditar só com atenções), e a fila parava de ser publicada. Vale o resultado do montar.
+    if: ${{ !cancelled() && needs.montar.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
